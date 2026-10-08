@@ -1,0 +1,51 @@
+[
+  {
+    "id": "tokyo-01",
+    "destination": "Tokyo",
+    "category": "Culinary & Dining",
+    "title": "Tsukiji Outer Market & Omoide Yokocho Food Etiquette",
+    "content": "In Tokyo, avoid walking while eating; consume food near the stall where purchased. For sushi and ramen, cash is still preferred in smaller izakayas. Visit Tsukiji Outer Market between 8 AM and 11 AM for the freshest tamagoyaki, fresh tuna bowls, and wagyu skewers. In Shinjuku's Omoide Yokocho (Memory Lane), yakitori skewers and draft beer offer quintessential retro dining."
+  },
+  {
+    "id": "tokyo-02",
+    "destination": "Tokyo",
+    "category": "Transit & Logistics",
+    "title": "Tokyo Metro IC Cards and Rush Hour Navigation",
+    "content": "Get a digital Suica or Pasmo on Apple Wallet / Google Pay before arrival. The Yamanote Loop Line connects Shibuya, Shinjuku, Harajuku, and Tokyo Station. Avoid major interchange stations (Shinjuku, Ikebukuro) between 7:30 AM - 9:00 AM. For day trips to Kamakura or Hakone, JR Tokyo Wide Pass saves up to 40% on express tickets."
+  },
+  {
+    "id": "tokyo-03",
+    "destination": "Tokyo",
+    "category": "Hidden Gems",
+    "title": "Yanaka Ginza and Shimokitazawa Vintage Culture",
+    "content": "Yanaka Ginza offers a preserved 'shitamachi' (old downtown) atmosphere with cat-themed street food, artisanal ceramics, and peaceful residential lanes. Shimokitazawa is Tokyo's indie music and vintage fashion capital, boasting boutique curry shops, record stores, and cozy craft beer pubs."
+  },
+  {
+    "id": "paris-01",
+    "destination": "Paris",
+    "category": "Culinary & Dining",
+    "title": "Bistronomy in the 11th Arrondissement & Bakery Rules",
+    "content": "Skip overpriced tourist cafes near the Eiffel Tower. Head to the 11th Arrondissement (Rue Paul Bert / Oberkampf) for cutting-edge bistronomy. Always greet bakery staff with 'Bonjour Madame/Monsieur' before ordering. Boulangeries award-winning baguettes ('Baguette de tradition') cost under 1.50 EUR and beat supermarket bread."
+  },
+  {
+    "id": "paris-02",
+    "destination": "Paris",
+    "category": "Transit & Logistics",
+    "title": "Navigo Easy and Museum Pass Optimization",
+    "content": "Purchase a Navigo Easy card and load a 10-ticket 'carnet' for cost savings over single paper tickets. Book Louvre and Musée d'Orsay timed-entry tickets at least 2 weeks in advance. Musée d'Orsay is best visited on Thursday evenings when open late with fewer crowds."
+  },
+  {
+    "id": "nyc-01",
+    "destination": "New York",
+    "category": "Neighborhoods & Dining",
+    "title": "Flushing Queens Food Tour & Lower East Side Deli Culture",
+    "content": "For the most authentic Asian cuisine in NYC, take the 7 train to Main St Flushing for hand-pulled noodles, soup dumplings, and Taiwanese pastries. In Manhattan's Lower East Side, Katz's Delicatessen is iconic for pastrami on rye, while Russ & Daughters is unmatched for bagels and smoked salmon."
+  },
+  {
+    "id": "rome-01",
+    "destination": "Rome",
+    "category": "Culture & Etiquette",
+    "title": "Roman Pasta Four Pillars & Espresso Customs",
+    "content": "Never order cappuccino after 11 AM if you want to drink like a local (order 'un caffe' / espresso at the bar counter). Master the 4 classic Roman pastas: Cacio e Pepe, Carbonara, Amatriciana, and Gricia in Trastevere or Testaccio. Always dress modestly (covered shoulders/knees) when visiting basilicas like St. Peter's and the Pantheon."
+  }
+]

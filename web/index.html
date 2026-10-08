@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NomadOS – Production AI Travel Companion Platform</title>
+    <meta name="description" content="Production-ready AI-powered travel planning and assistance platform across the entire journey. Combines flexible natural language planning, destination discovery, multi-modal transit, hotel booking, activities, dining, packing, and smart reminders.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="traveler-mode">
+    <!-- Background Ambient Glows -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="ambient-glow glow-3"></div>
+
+    <div class="app-container">
+        <!-- Main Top App Bar -->
+        <header class="app-header">
+            <div class="brand-section">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>Nomad<span>OS</span></h1>
+                    <span class="badge-env">AI Travel Companion</span>
+                </div>
+            </div>
+
+            <!-- Global Navigation Tabs -->
+            <nav class="app-nav" id="mainAppNav">
+                <button type="button" class="nav-tab active" data-view="plan">
+                    <span class="nav-icon">🏠</span>
+                    <span>Plan Trip</span>
+                </button>
+                <button type="button" class="nav-tab" data-view="dashboard" id="navTabDashboard">
+                    <span class="nav-icon">🗺️</span>
+                    <span>Trip Dashboard</span>
+                    <span class="active-trip-dot" id="activeTripDot"></span>
+                </button>
+                <button type="button" class="nav-tab" data-view="explore">
+                    <span class="nav-icon">📍</span>
+                    <span>Explore</span>
+                </button>
+                <button type="button" class="nav-tab ai-trigger-tab" id="openAiDrawerBtn">
+                    <span class="nav-icon">🤖</span>
+                    <span>AI Assistant</span>
+                </button>
+            </nav>
+
+            <div class="header-actions">
+                <!-- Currency Toggle Switcher -->
+                <div class="currency-toggle-group">
+                    <button type="button" class="currency-btn active" id="btnCurrencyINR" data-currency="INR">₹ INR</button>
+                    <button type="button" class="currency-btn" id="btnCurrencyUSD" data-currency="USD">$ USD</button>
+                </div>
+
+                <!-- User Profile / Auth Badge -->
+                <button type="button" id="userProfileBtn" class="user-profile-btn" title="Traveler Profile & Session">
+                    <span class="user-avatar" id="headerUserAvatar">👔</span>
+                    <div class="user-info-text">
+                        <span class="user-name" id="headerUserName">Alex Morgan</span>
+                        <span class="user-tier" id="headerUserTier">Executive Traveler</span>
+                    </div>
+                </button>
+
+                <!-- Production Role Switcher -->
+                <button type="button" id="roleToggleBtn" class="role-toggle-btn" title="Toggle between Traveler View and AI Engineering HUD">
+                    <span class="role-icon" id="roleIcon">✈️</span>
+                    <span class="role-label" id="roleLabel">Traveler Mode</span>
+                    <span class="role-badge" id="roleBadge">Customer</span>
+                </button>
+                
+                <div class="header-status">
+                    <!-- Active Real AI Engine Status Pill -->
+                    <div class="status-pill engine-status-pill" id="engineStatusPill" title="Offline Real AI via Local Ollama">
+                        <span class="status-icon" id="engineStatusIcon">🤖</span>
+                        <span id="engineStatusText">AI Engine: <strong id="engineModelName">Local Phi-3 / Llama-3.1</strong></span>
+                    </div>
+
+                    <!-- Interactive Live Demo Button -->
+                    <button type="button" id="startLiveDemoBtn" class="live-demo-nav-btn" title="Launch Interactive End-to-End Guided Demo">
+                        <span class="demo-sparkle">🚀</span>
+                        <span>Interactive Demo</span>
+                    </button>
+
+                    <div class="status-pill admin-only-element">
+                        <span class="status-dot"></span>
+                        <span>Router: <strong>Cost-Aware</strong></span>
+                    </div>
+                    <div class="status-pill admin-only-element">
+                        <span class="status-icon">⚡</span>
+                        <span>Bedrock / Chroma</span>
+                    </div>
+                    <div class="status-pill" id="uberStatusPill">
+                        <span class="status-icon">🚗</span>
+                        <span>Uber: <strong id="uberStatusText">Ready</strong></span>
+                    </div>
+                    <a href="/docs" target="_blank" class="api-docs-btn admin-only-element">API Docs</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- ============================================================ -->
+        <!-- VIEW 1: PLAN TRIP (Natural Entry, Discovery & Progressive)   -->
+        <!-- ============================================================ -->
+        <section id="viewPlanTrip" class="view-section active">
+            <!-- ============================================================ -->
+            <!-- 1. WELCOME HUB & PREPLANNED FULL TRIP BLUEPRINTS             -->
+            <!-- ============================================================ -->
+            <div class="welcome-hub-section" id="welcomeHubSection">
+                <!-- Welcoming Hero Card -->
+                <div class="glass-card welcome-hero-card">
+                    <div class="welcome-hero-content">
+                        <div class="welcome-badge-pill">
+                            <span class="pulse-dot"></span>
+                            <span>Your Autonomous AI Journey Architect &bull; 100% Real AI Engine</span>
+                        </div>
+                        <h2 id="welcomeGreetingHeading">Welcome to NomadOS, Alex</h2>
+                        <p class="welcome-hero-desc">
+                            Experience intelligent, booking-grade travel assistance from inception to doorstep return. Powered by our multi-agent orchestration engine with local LLM foundation models, deterministic state planning, vector RAG destination intelligence, and integrated Uber point-to-point transit.
+                        </p>
+                        <div class="welcome-hero-actions">
+                            <button type="button" class="btn-hero-demo" id="heroLiveDemoBtn">
+                                <span class="btn-icon">🚀</span>
+                                <span>Launch Interactive Guided Tour</span>
+                            </button>
+                            <button type="button" class="btn-hero-explore" id="heroQuickPlanBtn">
+                                <span class="btn-icon">✨</span>
+                                <span>Synthesize Custom Trip</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="welcome-stats-badge">
+                        <div class="wstat-item">
+                            <strong>5</strong>
+                            <span>Ready Blueprints</span>
+                        </div>
+                        <div class="wstat-divider"></div>
+                        <div class="wstat-item">
+                            <strong>9</strong>
+                            <span>Integrated Modules</span>
+                        </div>
+                        <div class="wstat-divider"></div>
+                        <div class="wstat-item">
+                            <strong>100%</strong>
+                            <span>Offline Real AI</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Curated Preplanned Full Trip Blueprints (Booking-Site Style Showcase) -->
+                <div class="templates-showcase-wrap">
+                    <div class="templates-header-row">
+                        <div>
+                            <h3>🌟 Curated Preplanned Full Trips</h3>
+                            <p class="templates-subtitle">Fully synthesized 9-module itineraries with real hotels, realistic schedules, dining, transit, and packing. Inspect or clone in 1 click.</p>
+                        </div>
+                        <div class="template-filter-pills" id="templateFilterPills">
+                            <button type="button" class="tmpl-filter-btn active" data-filter="all">All Trips</button>
+                            <button type="button" class="tmpl-filter-btn" data-filter="business">💼 Executive Business</button>
+                            <button type="button" class="tmpl-filter-btn" data-filter="leisure">🏖️ Leisure & Scenic</button>
+                            <button type="button" class="tmpl-filter-btn" data-filter="culture">🍣 Culture & Food</button>
+                        </div>
+                    </div>
+                    
+                    <div class="templates-carousel-grid" id="templatesCarouselGrid">
+                        <!-- Populated dynamically via JS from /api/v1/trip/templates -->
+                        <div class="template-card-skeleton">
+                            <div class="spinner"></div>
+                            <span>Loading curated trip blueprints...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- 2. CONVERSATIONAL TRIP INCEPTION CHAT SECTION               -->
+            <!-- ============================================================ -->
+            <div class="glass-card chat-inception-card" id="chatInceptionSection">
+                <div class="chat-inception-header">
+                    <div class="chat-header-title">
+                        <div class="chat-avatar-ai">🤖</div>
+                        <div>
+                            <h2>Plan a New Journey with AI</h2>
+                            <p class="chat-subtitle">Tell us what you're thinking for your next trip. Purpose, group, dates, or vibes — write freely.</p>
+                        </div>
+                    </div>
+                    <span class="chat-status-indicator">Online &bull; Context Aware</span>
+                </div>
+
+                <form id="heroPlanForm" class="chat-plan-form">
+                    <div class="chat-input-container">
+                        <textarea id="heroQueryInput" rows="3" placeholder="e.g. 'I have an executive business trip to Bangalore for 3 days next Tuesday for investor pitches and partner meetings. Need quiet dining and fast Wi-Fi.' or 'Plan a relaxed beach trip to Goa for 4 friends around ₹25,000'...">I have an executive business trip to Bangalore for 3 days next Tuesday for tech partner meetings and investor pitches. Need reliable 150+ Mbps Wi-Fi, quiet executive dining, and The Leela Palace or Taj hotel.</textarea>
+                        
+                        <div class="chat-input-footer">
+                            <div class="chat-prompt-chips" id="chatPromptChips">
+                                <button type="button" class="prompt-chip" data-prompt="Executive 3-day business trip to Bangalore with client meetings and high-speed Wi-Fi">💼 Bangalore Business Blitz</button>
+                                <button type="button" class="prompt-chip" data-prompt="3-day relaxed beach trip to Goa with 3 friends focusing on coastal seafood and sunset shacks">🏖️ Goa Friends Getaway</button>
+                                <button type="button" class="prompt-chip" data-prompt="5-day gastronomy and high-tech exploration in Tokyo for 2 people">🍣 Tokyo Foodie Tour</button>
+                                <button type="button" class="prompt-chip" data-prompt="3-day scenic coffee estate retreat in Coorg with family">🌿 Coorg Nature Retreat</button>
+                            </div>
+
+                            <button type="submit" id="heroSubmitBtn" class="btn-chat-execute">
+                                <span class="btn-icon">✨</span>
+                                <span class="btn-text">Extract Intent & Start</span>
+                                <div class="spinner hidden" id="heroSpinner"></div>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Starter Intent Quick Pills -->
+                <div class="starter-pills-section">
+                    <span class="starter-label">Quick Trip Vibe:</span>
+                    <div class="starter-pills-grid" id="starterPillsGrid">
+                        <button type="button" class="starter-pill" data-pill="know_destination">
+                            <span>📍 Known Destination</span>
+                        </button>
+                        <button type="button" class="starter-pill active" data-pill="help_choose">
+                            <span>✨ Help Me Choose</span>
+                        </button>
+                        <button type="button" class="starter-pill" data-pill="concert">
+                            <span>🎵 Event or Concert</span>
+                        </button>
+                        <button type="button" class="starter-pill" data-pill="family">
+                            <span>👨‍👩‍👧 Family Trip</span>
+                        </button>
+                        <button type="button" class="starter-pill" data-pill="adventure">
+                            <span>🏕️ Outdoor Adventure</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Destination Recommendations Gallery (Shown when destination is missing or exploring) -->
+            <div id="destRecommendationsContainer" class="destination-recommendations-wrapper hidden">
+                <div class="section-title-row">
+                    <div>
+                        <h3>✨ Recommended Destinations for Your Vibe</h3>
+                        <p class="section-desc">Hand-picked matches tailored to your group, mood, and estimated budget</p>
+                    </div>
+                    <span class="badge-count" id="recCountBadge">3 Top Matches</span>
+                </div>
+                <div class="destination-cards-grid" id="destCardsGrid">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- 3. INTERACTIVE FLASHCARDS FOR MISSING DETAILS                -->
+            <!-- ============================================================ -->
+            <div class="glass-card flashcards-wrapper" id="flashcardsContainer">
+                <div class="flashcard-top-bar">
+                    <div class="card-step-meta">
+                        <span class="step-pill" id="cardStepPill">Card 1 of 4</span>
+                        <span class="card-category-badge" id="cardCategoryBadge">Trip Nature & Purpose</span>
+                    </div>
+                    <div class="card-progress-track">
+                        <div class="card-progress-fill" id="cardProgressFill" style="width: 25%;"></div>
+                    </div>
+                </div>
+
+                <!-- Active Flashcard Viewport -->
+                <div class="flashcard-viewport">
+                    <div class="flashcard-card-body" id="flashcardBody">
+                        <div class="flashcard-hero-row">
+                            <span class="flashcard-icon-bubble" id="cardIcon">💼</span>
+                            <div>
+                                <h3 class="flashcard-title" id="cardTitle">What is the core nature of this journey?</h3>
+                                <p class="flashcard-subtitle" id="cardSubtitle">Select your journey style so we can prioritize corporate meeting blocks, quiet acoustics, and Wi-Fi speeds or scenic relaxation.</p>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Flashcard Options Grid -->
+                        <div class="flashcard-options-grid" id="cardOptionsGrid">
+                            <!-- Populated dynamically by JS -->
+                        </div>
+
+                        <!-- Flashcard Custom Field (e.g., origin city, budget input) -->
+                        <div class="flashcard-custom-input-wrap hidden" id="cardCustomInputWrap">
+                            <label id="cardCustomLabel">Specify details:</label>
+                            <input type="text" id="cardCustomInput" placeholder="e.g. Bangalore, Mumbai, London...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flashcard Navigation Controls -->
+                <div class="flashcard-nav-bar">
+                    <button type="button" class="btn-card-nav" id="btnCardPrev" disabled>
+                        <span>← Previous</span>
+                    </button>
+
+                    <div class="card-step-dots" id="cardStepDots">
+                        <span class="card-dot active" data-step="1"></span>
+                        <span class="card-dot" data-step="2"></span>
+                        <span class="card-dot" data-step="3"></span>
+                        <span class="card-dot" data-step="4"></span>
+                    </div>
+
+                    <div class="card-nav-actions">
+                        <button type="button" class="btn-card-nav highlight" id="btnCardNext">
+                            <span>Next Step →</span>
+                        </button>
+                        <button type="button" class="btn-card-nav execute hidden" id="btnCardFinish">
+                            <span>⚡ Synthesize Journey</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optional Collapsible Advanced Specs Form -->
+            <div class="glass-card progressive-card" id="progressiveCard">
+                <div class="progressive-header">
+                    <div>
+                        <h3>⚙️ Direct Trip Specifications</h3>
+                        <p class="subtitle">Quick manual overrides for city, group, duration, and budget.</p>
+                    </div>
+                    <span class="progressive-tag">Manual Overrides</span>
+                </div>
+
+                <div class="progressive-grid">
+                    <!-- Departure City -->
+                    <div class="prog-group">
+                        <label>🏠 Departure / Home City</label>
+                        <input type="text" id="progOriginInput" value="Bangalore" placeholder="e.g. Bangalore, Mumbai, or Delhi">
+                    </div>
+
+                    <!-- Traveling With -->
+                    <div class="prog-group">
+                        <label>👥 Traveling With</label>
+                        <div class="chip-select-row" id="companionSelect">
+                            <button type="button" class="sel-chip" data-val="Solo">👤 Solo</button>
+                            <button type="button" class="sel-chip" data-val="Couple">💑 Couple</button>
+                            <button type="button" class="sel-chip active" data-val="Friends">👯‍♂️ Friends</button>
+                            <button type="button" class="sel-chip" data-val="Family with Kids">👨‍👩‍👧 Family</button>
+                        </div>
+                    </div>
+
+                    <!-- Duration -->
+                    <div class="prog-group">
+                        <label>🗓️ Duration</label>
+                        <div class="chip-select-row" id="durationSelect">
+                            <button type="button" class="sel-chip" data-val="2">2 Days</button>
+                            <button type="button" class="sel-chip active" data-val="3">3 Days</button>
+                            <button type="button" class="sel-chip" data-val="4">4 Days</button>
+                            <button type="button" class="sel-chip" data-val="5">5 Days</button>
+                            <button type="button" class="sel-chip" data-val="7">7 Days</button>
+                        </div>
+                    </div>
+
+                    <!-- Transport Preference -->
+                    <div class="prog-group">
+                        <label>🚀 Preferred Long-Distance Transport</label>
+                        <div class="chip-select-row" id="transportSelect">
+                            <button type="button" class="sel-chip active" data-val="Flight">✈️ Flight</button>
+                            <button type="button" class="sel-chip" data-val="Train">🚆 Train</button>
+                            <button type="button" class="sel-chip" data-val="Bus">🚌 Bus</button>
+                            <button type="button" class="sel-chip" data-val="Cab">🚗 Cab</button>
+                        </div>
+                    </div>
+
+                    <!-- Budget Range -->
+                    <div class="prog-group full-width">
+                        <div class="budget-slider-header">
+                            <label>💰 Target Budget</label>
+                            <span class="budget-display-tag" id="budgetDisplayVal">₹20,000</span>
+                        </div>
+                        <input type="range" id="budgetSlider" min="5000" max="100000" step="1000" value="20000" class="custom-range">
+                        <div class="range-labels">
+                            <span>₹5,000 (Budget)</span>
+                            <span>₹25,000 (Comfort)</span>
+                            <span>₹50,000 (Premium)</span>
+                            <span>₹1,00,000+ (Luxury)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="prog-submit-row">
+                    <button type="button" class="btn-generate-full" id="progGenerateBtn">
+                        <span>⚡ Synthesize Full 9-Module Itinerary</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- VIEW 2: TRIP DASHBOARD (Active Trip Central Command)          -->
+        <!-- ============================================================ -->
+        <section id="viewTripDashboard" class="view-section hidden">
+            <!-- Active Trip Hero Banner -->
+            <div class="glass-card trip-hero-card">
+                <div class="trip-hero-top">
+                    <div>
+                        <div class="trip-status-row">
+                            <span class="status-indicator-dot active"></span>
+                            <span class="trip-status-text">ACTIVE JOURNEY PLAN</span>
+                            <span class="trip-currency-pill" id="heroCurrencyBadge">INR (₹)</span>
+                        </div>
+                        <h2 class="trip-title" id="dashTripTitle">Goa – 3-Day Friends Getaway</h2>
+                        <div class="trip-meta-tags" id="dashTripMetaTags">
+                            <span class="hero-tag">📍 Goa, India</span>
+                            <span class="hero-tag">🗓️ 3 Days</span>
+                            <span class="hero-tag">👥 4 Travelers (Friends)</span>
+                            <span class="hero-tag highlight-tag" id="dashHeroBudget">₹20,000 Estimated Budget</span>
+                        </div>
+                    </div>
+                    <div class="hero-actions">
+                        <button type="button" class="btn-dash-action" id="dashCopyMarkdownBtn">📋 Copy Markdown</button>
+                        <button type="button" class="btn-dash-action" id="dashExportJsonBtn">💾 Export JSON</button>
+                        <button type="button" class="btn-dash-action highlight" id="dashAskAiBtn">🤖 Ask AI</button>
+                    </div>
+                </div>
+
+                <!-- Section 20: Trip Preparation Progress Meter -->
+                <div class="trip-progress-container">
+                    <div class="progress-meta-row">
+                        <span class="progress-title">🧭 Trip Preparation Progress</span>
+                        <span class="progress-score" id="dashProgressPct">65% Ready</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="dashProgressFill" style="width: 65%;"></div>
+                    </div>
+                    <div class="progress-checkpoints" id="dashProgressCheckpoints">
+                        <span class="chk-item done" data-tab="overview">✓ Destination</span>
+                        <span class="chk-item done" data-tab="travel">✓ Transport</span>
+                        <span class="chk-item done" data-tab="hotels">✓ Hotel</span>
+                        <span class="chk-item done" data-tab="itinerary">✓ Itinerary</span>
+                        <span class="chk-item pending" data-tab="restaurants">○ Restaurants</span>
+                        <span class="chk-item pending" data-tab="activities">○ Activities</span>
+                        <span class="chk-item pending" data-tab="packing">○ Packing</span>
+                        <span class="chk-item pending" data-tab="checklist">○ Checklist</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Telemetry HUD (Shown when Admin Role is active) -->
+            <div class="telemetry-grid admin-only-element" id="dashAdminTelemetryGrid">
+                <div class="glass-card metric-card">
+                    <span class="metric-label">Pipeline Latency</span>
+                    <div class="metric-value"><span id="adminLatencyVal">320</span> <small>ms</small></div>
+                    <span class="metric-sub">P95 Multi-Agent Execution</span>
+                </div>
+                <div class="glass-card metric-card">
+                    <span class="metric-label">Bedrock Cost</span>
+                    <div class="metric-value">$<span id="adminCostVal">0.0174</span></div>
+                    <span class="metric-sub text-emerald">Saved ~70% vs Sonnet Only</span>
+                </div>
+                <div class="glass-card metric-card">
+                    <span class="metric-label">Tokens Processed</span>
+                    <div class="metric-value"><span id="adminTokensVal">3,660</span> <small>tokens</small></div>
+                    <span class="metric-sub">Prompt + Completion</span>
+                </div>
+                <div class="glass-card metric-card">
+                    <span class="metric-label">Model Routing</span>
+                    <div class="metric-value text-cyan">Haiku + Sonnet</div>
+                    <span class="metric-sub">Cost-Aware Deterministic</span>
+                </div>
+            </div>
+
+            <!-- 9-Module Dashboard Tabs Header -->
+            <div class="dashboard-tabs-bar">
+                <button type="button" class="dash-tab active" data-subtab="overview">
+                    <span>Overview</span>
+                </button>
+                <button type="button" class="dash-tab" data-subtab="itinerary">
+                    <span>📅 Itinerary</span>
+                </button>
+                <button type="button" class="dash-tab" data-subtab="travel">
+                    <span>🚀 Travel & Transit</span>
+                </button>
+                <button type="button" class="dash-tab" data-subtab="hotels">
+                    <span>🏨 Hotels</span>
+                </button>
+                <button type="button" class="dash-tab" data-subtab="activities">
+                    <span>✨ Activities</span>
+                </button>
+                <button type="button" class="dash-tab" data-subtab="restaurants">
+                    <span>🍴 Food & Dining</span>
+                </button>
+                <button type="button" class="dash-tab" data-subtab="budget">
+                    <span>💰 Budget</span>
+                </button>
+                <button type="button" class="dash-tab" data-subtab="packing">
+                    <span>🎒 Packing & Checklist</span>
+                </button>
+                <button type="button" class="dash-tab" data-subtab="reminders">
+                    <span>🔔 Reminders</span>
+                </button>
+            </div>
+
+            <!-- SUB-TAB CONTENT CONTAINERS -->
+            <div class="subtabs-container">
+                <!-- 1. OVERVIEW SUB-TAB -->
+                <div id="subtab-overview" class="subtab-panel active">
+                    <div class="overview-grid">
+                        <div class="glass-card overview-reason-card">
+                            <div class="card-badge-row">
+                                <h3>🧠 AI Synthesis & Rationale</h3>
+                                <span class="curated-badge">Tailored Strategy</span>
+                            </div>
+                            <p id="dashOverviewReason" class="overview-reason-text">Loading reasoning...</p>
+                            <div class="overview-quick-metrics" id="dashOverviewMetrics">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="glass-card overview-tips-card">
+                            <h3>✨ Destination Intelligence & Pro-Tips</h3>
+                            <ul class="tips-bullet-list" id="dashOverviewTipsList"></ul>
+                            <div class="transit-banner-item" id="dashOverviewTransitAdvice"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. ITINERARY SUB-TAB -->
+                <div id="subtab-itinerary" class="subtab-panel hidden">
+                    <div class="subtab-header-row">
+                        <div>
+                            <h3>📅 Master Day-by-Day Realistic Schedule</h3>
+                            <p class="subtab-desc">Structured with realistic travel buffers, local Uber integration, and authentic experiences</p>
+                        </div>
+                        <button type="button" class="btn-ai-contextual" id="btnAiOptimizeItinerary">
+                            <span>🧘 Optimize Pace with AI</span>
+                        </button>
+                    </div>
+                    <div class="days-container" id="dashDaysContainer">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- 3. TRAVEL & TRANSIT SUB-TAB -->
+                <div id="subtab-travel" class="subtab-panel hidden">
+                    <div class="subtab-header-row">
+                        <div>
+                            <h3>🚀 Multi-Modal Transportation Comparison</h3>
+                            <p class="subtab-desc">Compare direct flights, scenic trains, express buses, and outstation cabs from your doorstep</p>
+                        </div>
+                        <span class="route-hub-badge" id="dashTransitRouteBadge">Bangalore ➔ Goa</span>
+                    </div>
+                    <div class="transport-options-grid" id="dashTransportGrid">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- 4. HOTELS SUB-TAB -->
+                <div id="subtab-hotels" class="subtab-panel hidden">
+                    <div class="subtab-header-row">
+                        <div>
+                            <h3>🏨 Dedicated Lodging & Accommodations</h3>
+                            <p class="subtab-desc">Curated stays matching your style, party size, and proximity to planned activities</p>
+                        </div>
+                        <button type="button" class="btn-ai-contextual" id="btnAiFindCheaperHotel">
+                            <span>🏨 Find Cheaper Hotel</span>
+                        </button>
+                    </div>
+                    <div class="hotels-grid" id="dashHotelsGrid">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- 5. ACTIVITIES SUB-TAB -->
+                <div id="subtab-activities" class="subtab-panel hidden">
+                    <div class="subtab-header-row">
+                        <div>
+                            <h3>✨ Curated Attractions & Local Experiences</h3>
+                            <p class="subtab-desc">Must-visit landmarks, historic trails, concerts, and nature excursions</p>
+                        </div>
+                        <span class="curated-badge" id="dashActivitiesCountBadge">Curated Highlights</span>
+                    </div>
+                    <div class="activities-grid" id="dashActivitiesGrid">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- 6. RESTAURANTS SUB-TAB -->
+                <div id="subtab-restaurants" class="subtab-panel hidden">
+                    <div class="subtab-header-row">
+                        <div>
+                            <h3>🍴 Authentic Regional Dining & Culinary Gems</h3>
+                            <p class="subtab-desc">Verified restaurants and street eats curated to avoid tourist traps</p>
+                        </div>
+                        <div class="meal-filter-group" id="mealFilterGroup">
+                            <button type="button" class="meal-filter-btn active" data-meal="all">All</button>
+                            <button type="button" class="meal-filter-btn" data-meal="Breakfast">Breakfast</button>
+                            <button type="button" class="meal-filter-btn" data-meal="Lunch">Lunch</button>
+                            <button type="button" class="meal-filter-btn" data-meal="Dinner">Dinner</button>
+                        </div>
+                    </div>
+                    <div class="restaurants-grid" id="dashRestaurantsGrid">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- 7. BUDGET SUB-TAB -->
+                <div id="subtab-budget" class="subtab-panel hidden">
+                    <div class="subtab-header-row">
+                        <div>
+                            <h3>💰 Dynamic Budget Allocation & Variance</h3>
+                            <p class="subtab-desc">Real-time breakdown distinguishing estimated costs, confirmed bookings, and optional extras</p>
+                        </div>
+                        <div class="budget-actions-group">
+                            <button type="button" class="btn-export-corp" id="btnExportExpenseReport" title="Generate and download formatted corporate expense sheet">
+                                <span>📄 Export Corporate Expense Report</span>
+                            </button>
+                            <button type="button" class="btn-ai-contextual" id="btnAiReduceBudget">
+                                <span>💰 Reduce Trip Cost with AI</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="budget-card-content">
+                        <div class="budget-summary-banner" id="dashBudgetSummaryBanner"></div>
+                        <div class="budget-bars-list" id="dashBudgetBarsList"></div>
+                    </div>
+
+                    <!-- Corporate Travel & Expense Management Panel -->
+                    <div class="glass-card corporate-expense-panel" id="dashCorporateExpensePanel">
+                        <div class="corp-panel-header">
+                            <div class="corp-title-group">
+                                <span class="corp-icon">💼</span>
+                                <div>
+                                    <h4>Corporate Travel & Expense Management</h4>
+                                    <p class="corp-sub">Automated audit trails, reimbursable classification, and per-diem reconciliation for corporate reimbursement</p>
+                                </div>
+                            </div>
+                            <span class="badge-corp-status" id="corpReimbursementBadge">Reimbursable Active</span>
+                        </div>
+                        <div class="corp-stats-grid" id="dashCorpStatsGrid">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 8. PACKING & CHECKLIST SUB-TAB -->
+                <div id="subtab-packing" class="subtab-panel hidden">
+                    <div class="subtab-header-row">
+                        <div>
+                            <h3>🎒 Personalized Packing & Pre-Trip Preparation</h3>
+                            <p class="subtab-desc">Interactive checklists tailored to destination weather, planned activities, and departure readiness</p>
+                        </div>
+                        <div class="checklist-top-actions">
+                            <button type="button" class="btn-check-action" id="btnCheckAllPacking">Check All</button>
+                            <button type="button" class="btn-check-action" id="btnResetPacking">Reset</button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="packing-progress-bar-wrap">
+                        <div class="packing-progress-track">
+                            <div class="packing-progress-fill-bar" id="dashPackingFill" style="width: 0%;"></div>
+                        </div>
+                        <div class="packing-progress-labels">
+                            <span id="dashPackingCountText">0 / 0 Items Packed</span>
+                            <span id="dashPackingPercentText" class="text-emerald">0% Ready to Depart</span>
+                        </div>
+                    </div>
+
+                    <!-- Pre-Trip Departure Section (Section 17) -->
+                    <div class="glass-card pretrip-card">
+                        <h4>✈️ Before You Leave (Critical Pre-Trip Checklist)</h4>
+                        <div class="pretrip-list" id="dashPreTripList"></div>
+                    </div>
+
+                    <!-- Categorized Packing List (Section 16) -->
+                    <div class="packing-categories-layout" id="dashPackingLayout"></div>
+                </div>
+
+                <!-- 9. REMINDERS SUB-TAB -->
+                <div id="subtab-reminders" class="subtab-panel hidden">
+                    <div class="subtab-header-row">
+                        <div>
+                            <h3>🔔 Smart Trip Reminders & Alerts</h3>
+                            <p class="subtab-desc">Non-intrusive notifications for flights, departures, check-ins, and hotel checkout</p>
+                        </div>
+                        <span class="curated-badge">User Controlled</span>
+                    </div>
+                    <div class="reminders-grid" id="dashRemindersGrid">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- VIEW 3: EXPLORE DESTINATIONS GALLERY                         -->
+        <!-- ============================================================ -->
+        <section id="viewExplore" class="view-section hidden">
+            <div class="section-title-row">
+                <div>
+                    <h2>📍 Explore Trending Destinations</h2>
+                    <p class="section-desc">Discover inspiring getaways curated for weekend escapes, cultural retreats, and beach holidays</p>
+                </div>
+            </div>
+            <div class="explore-gallery-grid" id="exploreGalleryGrid">
+                <!-- Populated dynamically via JS -->
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE-OUT AI CONTEXTUAL ASSISTANT DRAWER (Section 22 & 30)   -->
+        <!-- ============================================================ -->
+        <div id="aiDrawer" class="ai-drawer-backdrop hidden">
+            <div class="ai-drawer-panel glass-card">
+                <div class="ai-drawer-header">
+                    <div class="drawer-title-group">
+                        <span class="drawer-icon">🤖</span>
+                        <div>
+                            <h3>NomadOS Contextual AI</h3>
+                            <p class="drawer-subtitle">Quiet, competent assistant with active trip context</p>
+                        </div>
+                    </div>
+                    <button type="button" class="drawer-close-btn" id="aiDrawerClose">&times;</button>
+                </div>
+
+                <!-- Contextual Quick Action Pills (Section 30) -->
+                <div class="ai-quick-pills-bar">
+                    <span class="quick-label">Quick Actions:</span>
+                    <div class="quick-pills-scroll">
+                        <button type="button" class="ai-pill" data-prompt="Can you make Day 2 less tiring?">🧘 Make Day 2 less tiring</button>
+                        <button type="button" class="ai-pill" data-prompt="Find a cheaper hotel option that maintains good quality.">🏨 Find cheaper hotel</button>
+                        <button type="button" class="ai-pill" data-prompt="Reduce the total trip cost by 15% with local culinary spots.">💰 Reduce trip cost</button>
+                        <button type="button" class="ai-pill" data-prompt="What are the essential packing items for this trip?">🎒 What should I pack?</button>
+                        <button type="button" class="ai-pill" data-prompt="Suggest a great dinner spot near our hotel tonight.">🍴 Dinner near hotel tonight</button>
+                    </div>
+                </div>
+
+                <!-- Conversational Message Log -->
+                <div class="ai-chat-messages" id="aiChatMessages">
+                    <div class="chat-bubble ai-bubble">
+                        <strong>NomadOS:</strong>
+                        <p>Hello! I'm here to assist with your journey. You can ask me to adjust schedules, find alternative hotels, find nearby restaurants, or optimize your budget without starting over.</p>
+                    </div>
+                </div>
+
+                <!-- Chat Input Row -->
+                <form id="aiChatForm" class="ai-chat-form">
+                    <input type="text" id="aiChatInput" placeholder="Ask anything about your trip..." required>
+                    <button type="submit" class="btn-chat-send" id="aiChatSendBtn">Send</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- UBER RIDE BOOKING MODAL (Official Rides API & Dynamic Quotes)-->
+        <!-- ============================================================ -->
+        <div id="uberModal" class="uber-modal-backdrop hidden">
+            <div class="uber-modal-card glass-card">
+                <div class="uber-modal-header">
+                    <div class="uber-title-group">
+                        <div class="uber-logo-badge"><span>UBER</span></div>
+                        <div>
+                            <h3>Uber Rides Integration</h3>
+                            <p class="uber-subtitle">Official Rides API & Dynamic Fare Quotes</p>
+                        </div>
+                    </div>
+                    <button type="button" class="uber-close-btn" id="uberModalClose">&times;</button>
+                </div>
+
+                <div class="uber-route-bar">
+                    <div class="route-node">
+                        <span class="route-dot pickup-dot"></span>
+                        <span class="route-text" id="uberPickupText">Current Location</span>
+                    </div>
+                    <div class="route-arrow">↓</div>
+                    <div class="route-node">
+                        <span class="route-dot dropoff-dot"></span>
+                        <span class="route-text" id="uberDropoffText">Destination</span>
+                    </div>
+                </div>
+
+                <!-- Ride Quotes View -->
+                <div id="uberQuotesView">
+                    <div class="uber-section-label">SELECT VEHICLE & VIEW DYNAMIC ESTIMATES</div>
+                    <div class="uber-products-list" id="uberProductsList">
+                        <div class="uber-loading-quotes">
+                            <div class="spinner"></div>
+                            <span>Querying Uber API for dynamic fares...</span>
+                        </div>
+                    </div>
+
+                    <div class="uber-actions-row">
+                        <button type="button" id="uberBookBtn" class="btn-uber-book" disabled>
+                            <span>Confirm Ride Booking</span>
+                        </button>
+                        <a id="uberAppDeepLink" href="#" target="_blank" class="btn-uber-deeplink">
+                            <span>Open in Uber App ↗</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Live Ride Tracking View -->
+                <div id="uberTrackingView" class="hidden">
+                    <div class="uber-tracking-header">
+                        <div class="uber-status-badge" id="uberTrackingStatus">DRIVER ACCEPTED</div>
+                        <div class="uber-eta-badge" id="uberTrackingEta">ETA: 4 min</div>
+                    </div>
+
+                    <div class="uber-driver-card">
+                        <div class="driver-avatar">👨🏻‍✈️</div>
+                        <div class="driver-info">
+                            <h4 id="uberDriverName">Taro Tanaka</h4>
+                            <div class="driver-rating">⭐ <span id="uberDriverRating">4.97</span> • Top Rated Driver</div>
+                            <div class="driver-vehicle" id="uberVehicleDesc">Toyota Camry Hybrid (Shinagawa 500-781)</div>
+                        </div>
+                    </div>
+
+                    <div class="uber-progress-container">
+                        <div class="uber-progress-bar">
+                            <div class="uber-progress-fill" id="uberProgressFill" style="width: 25%;"></div>
+                        </div>
+                        <div class="uber-progress-labels">
+                            <span id="step-accepted" class="active">Accepted</span>
+                            <span id="step-arriving">Arriving</span>
+                            <span id="step-in_progress">Trip</span>
+                            <span id="step-completed">Arrived</span>
+                        </div>
+                    </div>
+
+                    <div class="uber-tracking-actions">
+                        <button type="button" id="uberCancelRideBtn" class="btn-uber-cancel">Cancel Ride</button>
+                        <button type="button" id="uberDoneBtn" class="btn-uber-done">Close Tracker</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ============================================================ -->
+        <!-- AUTH MODAL & TRAVELER ONBOARDING GATE                        -->
+        <!-- ============================================================ -->
+        <div id="authModal" class="auth-modal-backdrop hidden">
+            <div class="auth-modal-card glass-card">
+                <div class="auth-modal-header">
+                    <div class="auth-brand-row">
+                        <div class="logo-icon small">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                <polyline points="2 17 12 22 22 17"></polyline>
+                                <polyline points="2 12 12 17 22 12"></polyline>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Sign In to NomadOS</h3>
+                            <p class="auth-card-sub">Choose your traveler identity or switch profile</p>
+                        </div>
+                    </div>
+                    <button type="button" class="auth-close-btn" id="authModalClose">&times;</button>
+                </div>
+
+                <p class="auth-explainer">
+                    NomadOS tailors your entire trip experience based on your identity: automated corporate expense tracking & meeting schedules for executives, or leisure shacks & scenic trails for weekend explorers.
+                </p>
+
+                <!-- Profile Selection Cards -->
+                <div class="auth-profiles-list" id="authProfilesList">
+                    <div class="auth-profile-card active" data-user-id="alex" data-user-name="Alex Morgan" data-user-tier="Executive Traveler" data-user-role="Corporate Executive" data-avatar="👔" data-is-business="true">
+                        <div class="profile-avatar">👔</div>
+                        <div class="profile-meta">
+                            <div class="profile-name-row">
+                                <h4>Alex Morgan</h4>
+                                <span class="profile-badge-pill executive">Corporate Executive</span>
+                            </div>
+                            <p class="profile-desc">Senior Director • Vertex Labs</p>
+                            <div class="profile-perks">
+                                <span>✓ 150+ Mbps Wi-Fi</span>
+                                <span>✓ Uber Premier</span>
+                                <span>✓ Corporate Expense CSV</span>
+                            </div>
+                        </div>
+                        <div class="profile-select-indicator">✓</div>
+                    </div>
+
+                    <div class="auth-profile-card" data-user-id="priya" data-user-name="Priya Sharma" data-user-tier="Leisure Explorer" data-user-role="Scenic & Foodie" data-avatar="🏖️" data-is-business="false">
+                        <div class="profile-avatar">🏖️</div>
+                        <div class="profile-meta">
+                            <div class="profile-name-row">
+                                <h4>Priya Sharma</h4>
+                                <span class="profile-badge-pill leisure">Leisure & Foodie</span>
+                            </div>
+                            <p class="profile-desc">Creative Director • Travel Enthusiast</p>
+                            <div class="profile-perks">
+                                <span>✓ Coastal Shacks</span>
+                                <span>✓ Boutique Stays</span>
+                                <span>✓ Sunset Trails</span>
+                            </div>
+                        </div>
+                        <div class="profile-select-indicator">✓</div>
+                    </div>
+
+                    <div class="auth-profile-card" data-user-id="guest" data-user-name="Guest Traveler" data-user-tier="Standard Traveler" data-user-role="Quick Explorer" data-avatar="👤" data-is-business="false">
+                        <div class="profile-avatar">👤</div>
+                        <div class="profile-meta">
+                            <div class="profile-name-row">
+                                <h4>Guest Explorer</h4>
+                                <span class="profile-badge-pill guest">Guest Mode</span>
+                            </div>
+                            <p class="profile-desc">Fast Anonymous Exploration</p>
+                            <div class="profile-perks">
+                                <span>✓ Standard Profiles</span>
+                                <span>✓ Full 9 Modules</span>
+                            </div>
+                        </div>
+                        <div class="profile-select-indicator">✓</div>
+                    </div>
+                </div>
+
+                <div class="auth-actions-row">
+                    <button type="button" class="btn-auth-confirm" id="authConfirmBtn">
+                        <span>Continue as Alex Morgan ➔</span>
+                    </button>
+                    <button type="button" class="btn-auth-logout hidden" id="authLogoutBtn">
+                        <span>Log Out / Switch Account</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 8. INTERACTIVE LIVE DEMO & GUIDED TOUR MODAL                 -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop hidden" id="liveDemoModal">
+        <div class="glass-card demo-modal-card">
+            <div class="demo-modal-header">
+                <div class="demo-modal-title">
+                    <span class="demo-badge-pill">🚀 Live System Showcase</span>
+                    <h2>NomadOS End-to-End Autonomous AI Demo</h2>
+                </div>
+                <button type="button" class="btn-close-drawer" id="closeDemoModalBtn" title="Close Tour">&times;</button>
+            </div>
+
+            <!-- Demo Progress Stepper -->
+            <div class="demo-stepper-bar">
+                <div class="demo-step-node active" data-step="1">
+                    <span class="node-num">1</span>
+                    <span class="node-label">NLP Intent Extraction</span>
+                </div>
+                <div class="demo-step-line"></div>
+                <div class="demo-step-node" data-step="2">
+                    <span class="node-num">2</span>
+                    <span class="node-label">4-Agent DAG Execution</span>
+                </div>
+                <div class="demo-step-line"></div>
+                <div class="demo-step-node" data-step="3">
+                    <span class="node-num">3</span>
+                    <span class="node-label">9-Module Trip Synthesis</span>
+                </div>
+                <div class="demo-step-line"></div>
+                <div class="demo-step-node" data-step="4">
+                    <span class="node-num">4</span>
+                    <span class="node-label">Uber Rides Integration</span>
+                </div>
+                <div class="demo-step-line"></div>
+                <div class="demo-step-node" data-step="5">
+                    <span class="node-num">5</span>
+                    <span class="node-label">Contextual AI Refinement</span>
+                </div>
+            </div>
+
+            <!-- Demo Content Display -->
+            <div class="demo-stage-body" id="demoStageBody">
+                <!-- Dynamically filled with rich animated tour slides -->
+            </div>
+
+            <!-- Demo Footer Actions -->
+            <div class="demo-modal-footer">
+                <div class="demo-footer-left">
+                    <button type="button" class="btn-demo-secondary" id="demoAutoPlayBtn">
+                        <span id="demoAutoPlayIcon">▶️</span>
+                        <span id="demoAutoPlayText">Auto-Play Showcase</span>
+                    </button>
+                    <span class="demo-step-counter" id="demoStepCounter">Stage 1 of 5</span>
+                </div>
+                <div class="demo-footer-right">
+                    <button type="button" class="btn-demo-secondary" id="demoPrevBtn" disabled>&larr; Previous</button>
+                    <button type="button" class="btn-demo-primary" id="demoNextBtn">Next Stage &rarr;</button>
+                    <button type="button" class="btn-demo-explore-trip hidden" id="demoExploreTripBtn">Explore Active Trip in Dashboard 🗺️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
