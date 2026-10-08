@@ -222,6 +222,70 @@ document.addEventListener('DOMContentLoaded', () => {
     const uberCancelRideBtn = document.getElementById('uberCancelRideBtn');
     const uberDoneBtn = document.getElementById('uberDoneBtn');
 
+    // New Trip & Save Progress Action Elements
+    const navBtnNewTrip = document.getElementById('navBtnNewTrip');
+    const heroStepBuilderBtn = document.getElementById('heroStepBuilderBtn');
+    const dashSaveTripBtn = document.getElementById('dashSaveTripBtn');
+    const dashNewTripBtn = document.getElementById('dashNewTripBtn');
+
+    // Inception Dual-Mode Elements
+    const btnModeStepWizard = document.getElementById('btnModeStepWizard');
+    const btnModeNaturalAI = document.getElementById('btnModeNaturalAI');
+    const stepByStepWizardView = document.getElementById('stepByStepWizardView');
+    const naturalPromptModeView = document.getElementById('naturalPromptModeView');
+
+    // Step-by-Step Wizard Elements
+    const wizardStepCounter = document.getElementById('wizardStepCounter');
+    const wizardStepBadge = document.getElementById('wizardStepBadge');
+    const wizardProgressBar = document.getElementById('wizardProgressBar');
+    const wizDestinationInput = document.getElementById('wizDestinationInput');
+    const wizOriginInput = document.getElementById('wizOriginInput');
+    const wizDurationGrid = document.getElementById('wizDurationGrid');
+    const wizCompanionSelect = document.getElementById('wizCompanionSelect');
+    const wizStyleSelect = document.getElementById('wizStyleSelect');
+    const wizBudgetPresets = document.getElementById('wizBudgetPresets');
+    const wizCustomBudgetInput = document.getElementById('wizCustomBudgetInput');
+    const wizCurrencySymbol = document.getElementById('wizCurrencySymbol');
+    const wizTierBudgetAmount = document.getElementById('wizTierBudgetAmount');
+    const wizTierComfortAmount = document.getElementById('wizTierComfortAmount');
+    const wizTierPremiumAmount = document.getElementById('wizTierPremiumAmount');
+    const wizSummaryPills = document.getElementById('wizSummaryPills');
+    const btnWizBack = document.getElementById('btnWizBack');
+    const btnWizNext = document.getElementById('btnWizNext');
+    const btnWizFinish = document.getElementById('btnWizFinish');
+    const wizSpinner = document.getElementById('wizSpinner');
+    const wizDotsIndicator = document.getElementById('wizDotsIndicator');
+
+    // Custom Checklist Form Elements
+    const addChecklistForm = document.getElementById('addChecklistForm');
+    const newChecklistTitle = document.getElementById('newChecklistTitle');
+    const newChecklistCategory = document.getElementById('newChecklistCategory');
+
+
+    // ============================================================
+    // TOAST NOTIFICATIONS & FEEDBACK
+    // ============================================================
+    function showToast(message, type = 'info') {
+        let container = document.getElementById('nomados-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'nomados-toast-container';
+            container.className = 'nomados-toast-container';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = `nomados-toast toast-${type}`;
+        const icon = type === 'success' ? '✅' : type === 'error' ? '⚠️' : type === 'warning' ? '🔔' : 'ℹ️';
+        toast.innerHTML = `<span style="font-size: 1.15rem; line-height: 1;">${icon}</span><span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(12px)';
+            setTimeout(() => toast.remove(), 350);
+        }, 3600);
+    }
+    window.showToast = showToast;
+
     // ============================================================
     // CURRENCY & FORMATTING HELPERS
     // ============================================================
@@ -258,6 +322,33 @@ document.addEventListener('DOMContentLoaded', () => {
                     budgetSlider.value = "20000";
                     updateBudgetDisplay();
                 }
+            }
+        }
+
+        // Synchronize Step-by-Step Wizard Budget Controls
+        if (wizCurrencySymbol) {
+            wizCurrencySymbol.textContent = curr === 'USD' ? '$' : '₹';
+        }
+        if (wizTierBudgetAmount && wizTierComfortAmount && wizTierPremiumAmount) {
+            if (curr === 'USD') {
+                wizTierBudgetAmount.textContent = '$200';
+                wizTierComfortAmount.textContent = '$450';
+                wizTierPremiumAmount.textContent = '$850';
+                if (wizCustomBudgetInput && (wizCustomBudgetInput.value === '35000' || wizCustomBudgetInput.value === '15000' || wizCustomBudgetInput.value === '65000')) {
+                    wizCustomBudgetInput.value = '450';
+                    if (typeof wizardState !== 'undefined') wizardState.budgetAmount = 450;
+                }
+            } else {
+                wizTierBudgetAmount.textContent = '₹15,000';
+                wizTierComfortAmount.textContent = '₹35,000';
+                wizTierPremiumAmount.textContent = '₹65,000';
+                if (wizCustomBudgetInput && (wizCustomBudgetInput.value === '450' || wizCustomBudgetInput.value === '200' || wizCustomBudgetInput.value === '850')) {
+                    wizCustomBudgetInput.value = '35000';
+                    if (typeof wizardState !== 'undefined') wizardState.budgetAmount = 35000;
+                }
+            }
+            if (typeof updateWizardSummary === 'function') {
+                updateWizardSummary();
             }
         }
 
@@ -347,6 +438,439 @@ document.addEventListener('DOMContentLoaded', () => {
     if (navBtnPlan) navBtnPlan.addEventListener('click', () => switchView('plan'));
     if (navBtnDashboard) navBtnDashboard.addEventListener('click', () => switchView('dashboard'));
     if (navBtnExplore) navBtnExplore.addEventListener('click', () => switchView('explore'));
+
+    // ============================================================
+    // NEW TRIP & SAVE PROGRESS WORKFLOWS
+    // ============================================================
+    function startNewTripFlow() {
+        switchView('plan');
+        goToWizardStep(1);
+        if (stepByStepWizardView && naturalPromptModeView) {
+            stepByStepWizardView.classList.remove('hidden');
+            stepByStepWizardView.classList.add('active');
+            naturalPromptModeView.classList.add('hidden');
+            if (btnModeStepWizard && btnModeNaturalAI) {
+                btnModeStepWizard.classList.add('active');
+                btnModeNaturalAI.classList.remove('active');
+            }
+        }
+        const inceptionCard = document.getElementById('chatInceptionSection');
+        if (inceptionCard) {
+            inceptionCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        if (wizDestinationInput) {
+            setTimeout(() => {
+                wizDestinationInput.focus();
+                wizDestinationInput.select();
+            }, 300);
+        }
+        showToast('Design your new trip step-by-step or use natural AI prompt!', 'info');
+    }
+    window.startNewTripFlow = startNewTripFlow;
+
+    if (navBtnNewTrip) navBtnNewTrip.addEventListener('click', startNewTripFlow);
+    if (dashNewTripBtn) dashNewTripBtn.addEventListener('click', startNewTripFlow);
+
+    async function saveTripProgress() {
+        if (!currentTrip) {
+            showToast('No active trip loaded to save. Plan a trip first!', 'warning');
+            return;
+        }
+
+        const tripId = currentTrip.trip_id || currentTrip.id || ('trip_' + Date.now());
+        currentTrip.trip_id = tripId;
+        currentTrip.updated_at = new Date().toISOString();
+
+        // 1. Immediately cache in localStorage for instant offline safety
+        localStorage.setItem('nomados_current_trip', JSON.stringify(currentTrip));
+
+        // 2. Temporarily show saving spinner state on button
+        if (dashSaveTripBtn) {
+            dashSaveTripBtn.disabled = true;
+            dashSaveTripBtn.innerHTML = `<span>Saving...</span><div class="spinner" style="width:13px;height:13px;border-width:2px;display:inline-block;margin-left:6px;"></div>`;
+        }
+
+        // 3. Persist to backend SQLite DB
+        try {
+            const res = await fetch(`/api/v1/trip/${encodeURIComponent(tripId)}/save`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentTrip)
+            });
+
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            showToast(`Trip progress saved successfully! (Trip ID: ${tripId})`, 'success');
+            if (dashSaveTripBtn) {
+                dashSaveTripBtn.innerHTML = `<span class="btn-icon">✅</span><span>Saved!</span>`;
+                setTimeout(() => {
+                    dashSaveTripBtn.disabled = false;
+                    dashSaveTripBtn.innerHTML = `<span class="btn-icon">💾</span><span>Save Progress</span>`;
+                }, 2400);
+            }
+        } catch (err) {
+            console.warn('Backend save encountered error, saved locally in browser:', err);
+            showToast('Trip progress saved locally in browser!', 'info');
+            if (dashSaveTripBtn) {
+                dashSaveTripBtn.innerHTML = `<span class="btn-icon">💾</span><span>Saved Locally</span>`;
+                setTimeout(() => {
+                    dashSaveTripBtn.disabled = false;
+                    dashSaveTripBtn.innerHTML = `<span class="btn-icon">💾</span><span>Save Progress</span>`;
+                }, 2400);
+            }
+        }
+    }
+    window.saveTripProgress = saveTripProgress;
+
+    if (dashSaveTripBtn) dashSaveTripBtn.addEventListener('click', saveTripProgress);
+
+    // ============================================================
+    // DUAL-MODE TRIP INCEPTION SWITCHER (Step-by-Step vs Natural AI)
+    // ============================================================
+    if (btnModeStepWizard && btnModeNaturalAI) {
+        btnModeStepWizard.addEventListener('click', () => {
+            btnModeStepWizard.classList.add('active');
+            btnModeNaturalAI.classList.remove('active');
+            if (stepByStepWizardView) {
+                stepByStepWizardView.classList.remove('hidden');
+                stepByStepWizardView.classList.add('active');
+            }
+            if (naturalPromptModeView) {
+                naturalPromptModeView.classList.add('hidden');
+                naturalPromptModeView.classList.remove('active');
+            }
+        });
+
+        btnModeNaturalAI.addEventListener('click', () => {
+            btnModeNaturalAI.classList.add('active');
+            btnModeStepWizard.classList.remove('active');
+            if (naturalPromptModeView) {
+                naturalPromptModeView.classList.remove('hidden');
+                naturalPromptModeView.classList.add('active');
+            }
+            if (stepByStepWizardView) {
+                stepByStepWizardView.classList.add('hidden');
+                stepByStepWizardView.classList.remove('active');
+            }
+            if (heroQueryInput) {
+                heroQueryInput.focus();
+            }
+        });
+    }
+
+    if (heroStepBuilderBtn) {
+        heroStepBuilderBtn.addEventListener('click', () => {
+            if (btnModeStepWizard) btnModeStepWizard.click();
+            const inceptionCard = document.getElementById('chatInceptionSection');
+            if (inceptionCard) {
+                inceptionCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            if (wizDestinationInput) {
+                setTimeout(() => wizDestinationInput.focus(), 300);
+            }
+        });
+    }
+
+    // ============================================================
+    // STEP-BY-STEP MINIMAL QUESTIONS BUILDER CONTROLLER
+    // ============================================================
+    const wizardState = {
+        currentStep: 1,
+        totalSteps: 4,
+        destination: 'Tokyo',
+        origin: 'Bangalore',
+        duration: 3,
+        companion: 'Couple',
+        style: 'Food & Culture',
+        budgetTier: 'comfort',
+        budgetAmount: currentCurrency === 'USD' ? 450 : 35000
+    };
+
+    const wizardStepTitles = {
+        1: 'Destination & Origin',
+        2: 'Trip Duration',
+        3: 'Party & Travel Vibe',
+        4: 'Budget & Review'
+    };
+
+    function goToWizardStep(stepNum) {
+        if (stepNum < 1 || stepNum > wizardState.totalSteps) return;
+        wizardState.currentStep = stepNum;
+
+        // Hide all steps, show active step
+        for (let i = 1; i <= wizardState.totalSteps; i++) {
+            const stepPanel = document.getElementById(`wizardStep${i}`);
+            if (stepPanel) {
+                if (i === stepNum) {
+                    stepPanel.classList.remove('hidden');
+                    stepPanel.classList.add('active');
+                } else {
+                    stepPanel.classList.add('hidden');
+                    stepPanel.classList.remove('active');
+                }
+            }
+        }
+
+        // Update step counter & badge
+        if (wizardStepCounter) {
+            wizardStepCounter.textContent = `Step ${stepNum} of ${wizardState.totalSteps}`;
+        }
+        if (wizardStepBadge) {
+            wizardStepBadge.textContent = wizardStepTitles[stepNum] || 'Trip Planning';
+        }
+
+        // Update progress bar width
+        if (wizardProgressBar) {
+            const pct = Math.round((stepNum / wizardState.totalSteps) * 100);
+            wizardProgressBar.style.width = `${pct}%`;
+        }
+
+        // Update stepper dots
+        if (wizDotsIndicator) {
+            wizDotsIndicator.querySelectorAll('.wdot').forEach(dot => {
+                const s = parseInt(dot.getAttribute('data-step'), 10);
+                if (s === stepNum) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        // Update Nav button states
+        if (btnWizBack) {
+            btnWizBack.disabled = (stepNum === 1);
+        }
+        if (btnWizNext && btnWizFinish) {
+            if (stepNum === wizardState.totalSteps) {
+                btnWizNext.classList.add('hidden');
+                btnWizFinish.classList.remove('hidden');
+            } else {
+                btnWizNext.classList.remove('hidden');
+                btnWizFinish.classList.add('hidden');
+            }
+        }
+
+        updateWizardSummary();
+    }
+    window.goToWizardStep = goToWizardStep;
+
+    function updateWizardSummary() {
+        if (!wizSummaryPills) return;
+        const currSym = currentCurrency === 'USD' ? '$' : '₹';
+        const formattedBudget = `${currSym}${Number(wizardState.budgetAmount).toLocaleString()}`;
+        wizSummaryPills.innerHTML = `
+            <span class="spill">📍 ${wizardState.destination || 'Destination'}</span>
+            <span class="spill">🛫 From ${wizardState.origin || 'Bangalore'}</span>
+            <span class="spill">🗓️ ${wizardState.duration} Days</span>
+            <span class="spill">👥 ${wizardState.companion}</span>
+            <span class="spill">🎨 ${wizardState.style}</span>
+            <span class="spill">💰 ${formattedBudget}</span>
+        `;
+    }
+
+    // Step 1: Destination input & Quick picks
+    if (wizDestinationInput) {
+        wizDestinationInput.addEventListener('input', (e) => {
+            wizardState.destination = e.target.value.trim() || 'Tokyo';
+            updateWizardSummary();
+            // Deselect pick chips if custom typed
+            document.querySelectorAll('.wiz-pick-chip').forEach(chip => {
+                if (chip.getAttribute('data-dest').toLowerCase() === wizardState.destination.toLowerCase()) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+        });
+    }
+
+    if (wizOriginInput) {
+        wizOriginInput.addEventListener('input', (e) => {
+            wizardState.origin = e.target.value.trim() || 'Bangalore';
+            updateWizardSummary();
+        });
+    }
+
+    document.querySelectorAll('.wiz-pick-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('.wiz-pick-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            const dest = chip.getAttribute('data-dest');
+            if (dest) {
+                wizardState.destination = dest;
+                if (wizDestinationInput) wizDestinationInput.value = dest;
+                updateWizardSummary();
+            }
+        });
+    });
+
+    // Step 2: Duration selection cards
+    if (wizDurationGrid) {
+        wizDurationGrid.addEventListener('click', (e) => {
+            const card = e.target.closest('.wiz-pill-card');
+            if (!card) return;
+            wizDurationGrid.querySelectorAll('.wiz-pill-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            const days = parseInt(card.getAttribute('data-days'), 10) || 3;
+            wizardState.duration = days;
+            updateWizardSummary();
+        });
+    }
+
+    // Step 3: Companions & Travel Style chips
+    if (wizCompanionSelect) {
+        wizCompanionSelect.addEventListener('click', (e) => {
+            const chip = e.target.closest('.wiz-sel-chip');
+            if (!chip) return;
+            wizCompanionSelect.querySelectorAll('.wiz-sel-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            wizardState.companion = chip.getAttribute('data-val') || 'Couple';
+            updateWizardSummary();
+        });
+    }
+
+    if (wizStyleSelect) {
+        wizStyleSelect.addEventListener('click', (e) => {
+            const chip = e.target.closest('.wiz-sel-chip');
+            if (!chip) return;
+            wizStyleSelect.querySelectorAll('.wiz-sel-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            wizardState.style = chip.getAttribute('data-val') || 'Food & Culture';
+            updateWizardSummary();
+        });
+    }
+
+    // Step 4: Budget presets & custom amount
+    if (wizBudgetPresets) {
+        wizBudgetPresets.addEventListener('click', (e) => {
+            const card = e.target.closest('.budget-preset-card');
+            if (!card) return;
+            wizBudgetPresets.querySelectorAll('.budget-preset-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            const tier = card.getAttribute('data-tier');
+            wizardState.budgetTier = tier;
+
+            const isUSD = currentCurrency === 'USD';
+            let amount = 35000;
+            if (tier === 'budget') amount = isUSD ? 200 : 15000;
+            else if (tier === 'comfort') amount = isUSD ? 450 : 35000;
+            else if (tier === 'premium') amount = isUSD ? 850 : 65000;
+
+            wizardState.budgetAmount = amount;
+            if (wizCustomBudgetInput) wizCustomBudgetInput.value = amount;
+            updateWizardSummary();
+        });
+    }
+
+    if (wizCustomBudgetInput) {
+        wizCustomBudgetInput.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value, 10);
+            if (!isNaN(val) && val > 0) {
+                wizardState.budgetAmount = val;
+                if (wizBudgetPresets) {
+                    wizBudgetPresets.querySelectorAll('.budget-preset-card').forEach(c => c.classList.remove('active'));
+                }
+                updateWizardSummary();
+            }
+        });
+    }
+
+    // Stepper Navigation buttons
+    if (btnWizBack) {
+        btnWizBack.addEventListener('click', () => {
+            if (wizardState.currentStep > 1) {
+                goToWizardStep(wizardState.currentStep - 1);
+            }
+        });
+    }
+
+    if (btnWizNext) {
+        btnWizNext.addEventListener('click', () => {
+            if (wizardState.currentStep === 1) {
+                const dest = wizDestinationInput ? wizDestinationInput.value.trim() : wizardState.destination;
+                if (!dest) {
+                    showToast('Please enter or select a destination!', 'warning');
+                    if (wizDestinationInput) wizDestinationInput.focus();
+                    return;
+                }
+                wizardState.destination = dest;
+            }
+            if (wizardState.currentStep < wizardState.totalSteps) {
+                goToWizardStep(wizardState.currentStep + 1);
+            }
+        });
+    }
+
+    if (wizDotsIndicator) {
+        wizDotsIndicator.querySelectorAll('.wdot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                const s = parseInt(dot.getAttribute('data-step'), 10);
+                if (s) goToWizardStep(s);
+            });
+        });
+    }
+
+    async function synthesizeFromWizard() {
+        if (!wizardState.destination) {
+            showToast('Please specify a destination to begin!', 'warning');
+            goToWizardStep(1);
+            if (wizDestinationInput) wizDestinationInput.focus();
+            return;
+        }
+
+        if (btnWizFinish) {
+            btnWizFinish.disabled = true;
+            btnWizFinish.innerHTML = `<span>Synthesizing 9 Modules...</span><div class="spinner" style="display:inline-block;width:14px;height:14px;border-width:2px;margin-left:8px;"></div>`;
+        }
+
+        try {
+            const isBusiness = wizardState.companion.toLowerCase().includes('business') || wizardState.style.toLowerCase().includes('business');
+            const payload = {
+                query: `${wizardState.duration}-day ${wizardState.style} journey to ${wizardState.destination} for ${wizardState.companion}`,
+                origin_city: wizardState.origin || 'Bangalore',
+                destination: wizardState.destination,
+                duration_days: parseInt(wizardState.duration, 10),
+                companions: wizardState.companion,
+                budget_amount: parseInt(wizardState.budgetAmount, 10),
+                currency: currentCurrency,
+                is_business: isBusiness,
+                trip_purpose: isBusiness ? 'business' : 'leisure',
+                company_name: currentUser.name + " Corporation",
+                work_amenities: isBusiness ? ["High-Speed Wi-Fi (150+ Mbps)", "Quiet Meeting Suites", "Uber Premier Booking"] : [],
+                interests: [wizardState.style, "Sightseeing", "Local Food", "Culture", "Relaxation"]
+            };
+
+            showToast(`Synthesizing tailored ${wizardState.duration}-day trip to ${wizardState.destination}...`, 'info');
+
+            const res = await fetch('/api/v1/trip/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to generate trip`);
+            const trip = await res.json();
+            currentTrip = trip;
+            localStorage.setItem('nomados_current_trip', JSON.stringify(trip));
+
+            showToast(`🎉 ${trip.destination} journey successfully synthesized with 9 modules!`, 'success');
+            switchView('dashboard');
+            renderTripDashboard(trip);
+        } catch (err) {
+            console.error('Wizard trip generation failed:', err);
+            showToast(`Failed to generate trip: ${err.message}`, 'error');
+        } finally {
+            if (btnWizFinish) {
+                btnWizFinish.disabled = false;
+                btnWizFinish.innerHTML = `<span class="btn-icon">⚡</span><span>Synthesize 9-Module Trip 🚀</span>`;
+            }
+        }
+    }
+
+    if (btnWizFinish) {
+        btnWizFinish.addEventListener('click', synthesizeFromWizard);
+    }
 
     // ============================================================
     // TRAVELER PROFILE & AUTH ONBOARDING GATE
@@ -1666,6 +2190,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 8. Packing & Pre-Trip Checklist Subtab (Section 16 & 17)
     function renderSubtabPacking(trip) {
+        if (!trip) return;
+
         // Pre-trip checklist
         if (dashPreTripList) {
             const preTrips = trip.pre_trip_checklist || [
@@ -1677,12 +2203,15 @@ document.addEventListener('DOMContentLoaded', () => {
             ];
 
             dashPreTripList.innerHTML = preTrips.map((item, idx) => `
-                <label class="pretrip-item ${item.is_completed ? 'completed' : ''}">
-                    <input type="checkbox" ${item.is_completed ? 'checked' : ''} onchange="window.togglePreTripCheck(${idx})">
-                    <span class="custom-chk"></span>
-                    <span class="pretrip-task-text">${item.title}</span>
-                    <span class="priority-tag ${item.is_critical ? 'critical' : 'high'}">${item.is_critical ? 'Critical' : 'Important'}</span>
-                </label>
+                <div class="pretrip-item-row" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;">
+                    <label class="pretrip-item ${item.is_completed ? 'completed' : ''}" style="flex: 1; margin-bottom: 0;">
+                        <input type="checkbox" ${item.is_completed ? 'checked' : ''} onchange="window.togglePreTripCheck(${idx})">
+                        <span class="custom-chk"></span>
+                        <span class="pretrip-task-text">${item.title}</span>
+                        <span class="priority-tag ${item.is_critical ? 'critical' : 'high'}">${item.is_critical ? 'Critical' : 'Important'}</span>
+                    </label>
+                    ${item.is_custom ? `<button type="button" class="delete-chk-btn" onclick="window.deleteChecklistItem('${item.id}', true)" title="Delete Item">✕</button>` : ''}
+                </div>
             `).join('');
         }
 
@@ -1717,11 +2246,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h5>${catName}</h5>
                     <div class="packing-items-list">
                         ${categoriesMap[catName].map(item => `
-                            <label class="pack-checkbox-row ${item.is_packed ? 'packed' : ''}">
-                                <input type="checkbox" ${item.is_packed ? 'checked' : ''} onchange="window.togglePackItem('${item.id}')">
-                                <span class="custom-chk"></span>
-                                <span class="item-name">${item.item_name}</span>
-                            </label>
+                            <div class="pack-item-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                <label class="pack-checkbox-row ${(item.is_packed || item.checked) ? 'packed' : ''}" style="flex: 1; margin-bottom: 0;">
+                                    <input type="checkbox" ${(item.is_packed || item.checked) ? 'checked' : ''} onchange="window.togglePackItem('${item.id}')">
+                                    <span class="custom-chk"></span>
+                                    <span class="item-name">${item.item_name || item.item}</span>
+                                </label>
+                                ${item.is_custom ? `<button type="button" class="delete-chk-btn" onclick="window.deleteChecklistItem('${item.id}', false)" title="Delete Item">✕</button>` : ''}
+                            </div>
                         `).join('')}
                     </div>
                 </div>
@@ -1735,7 +2267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!trip) return;
         const list = trip.packing_checklist || [];
         const total = list.length;
-        const packed = list.filter(i => i.is_packed).length;
+        const packed = list.filter(i => (i.is_packed || i.checked)).length;
         const pct = total > 0 ? Math.round((packed / total) * 100) : 0;
 
         if (dashPackingFill) dashPackingFill.style.width = `${pct}%`;
@@ -1747,8 +2279,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentTrip || !currentTrip.packing_checklist) return;
         const item = currentTrip.packing_checklist.find(i => i.id === itemId);
         if (item) {
-            item.is_packed = !item.is_packed;
+            item.is_packed = !(item.is_packed || item.checked);
+            item.checked = item.is_packed;
             renderSubtabPacking(currentTrip);
+            localStorage.setItem('nomados_current_trip', JSON.stringify(currentTrip));
         }
     };
 
@@ -1756,23 +2290,88 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentTrip || !currentTrip.pre_trip_checklist || !currentTrip.pre_trip_checklist[idx]) return;
         currentTrip.pre_trip_checklist[idx].is_completed = !currentTrip.pre_trip_checklist[idx].is_completed;
         renderSubtabPacking(currentTrip);
+        localStorage.setItem('nomados_current_trip', JSON.stringify(currentTrip));
+    };
+
+    window.deleteChecklistItem = (itemId, isPreTrip) => {
+        if (!currentTrip) return;
+        if (isPreTrip && currentTrip.pre_trip_checklist) {
+            currentTrip.pre_trip_checklist = currentTrip.pre_trip_checklist.filter(i => i.id !== itemId);
+        } else if (currentTrip.packing_checklist) {
+            currentTrip.packing_checklist = currentTrip.packing_checklist.filter(i => i.id !== itemId);
+        }
+        renderSubtabPacking(currentTrip);
+        localStorage.setItem('nomados_current_trip', JSON.stringify(currentTrip));
+        showToast('Item removed from checklist', 'info');
     };
 
     if (btnCheckAllPacking) {
         btnCheckAllPacking.addEventListener('click', () => {
             if (!currentTrip || !currentTrip.packing_checklist) return;
-            currentTrip.packing_checklist.forEach(i => i.is_packed = true);
+            currentTrip.packing_checklist.forEach(i => {
+                i.is_packed = true;
+                i.checked = true;
+            });
             renderSubtabPacking(currentTrip);
+            localStorage.setItem('nomados_current_trip', JSON.stringify(currentTrip));
         });
     }
 
     if (btnResetPacking) {
         btnResetPacking.addEventListener('click', () => {
             if (!currentTrip || !currentTrip.packing_checklist) return;
-            currentTrip.packing_checklist.forEach(i => i.is_packed = false);
+            currentTrip.packing_checklist.forEach(i => {
+                i.is_packed = false;
+                i.checked = false;
+            });
             renderSubtabPacking(currentTrip);
+            localStorage.setItem('nomados_current_trip', JSON.stringify(currentTrip));
         });
     }
+
+    if (addChecklistForm) {
+        addChecklistForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = newChecklistTitle ? newChecklistTitle.value.trim() : '';
+            const cat = newChecklistCategory ? newChecklistCategory.value : '🛂 Essentials & Documents';
+            if (!title) return;
+            if (!currentTrip) {
+                showToast('Please create or load a trip first!', 'info');
+                return;
+            }
+
+            if (cat.includes('Pre-Trip') || cat.includes('Departure')) {
+                if (!currentTrip.pre_trip_checklist) currentTrip.pre_trip_checklist = [];
+                currentTrip.pre_trip_checklist.unshift({
+                    id: 'prep-' + Date.now(),
+                    title: title,
+                    category: 'Preparation',
+                    is_completed: false,
+                    is_critical: true,
+                    is_custom: true
+                });
+            } else {
+                if (!currentTrip.packing_checklist) currentTrip.packing_checklist = [];
+                currentTrip.packing_checklist.unshift({
+                    id: 'pack-' + Date.now(),
+                    item: title,
+                    item_name: title,
+                    category: cat,
+                    is_essential: true,
+                    is_packed: false,
+                    checked: false,
+                    reminder_note: 'Custom essential item',
+                    is_custom: true
+                });
+            }
+
+            renderSubtabPacking(currentTrip);
+            localStorage.setItem('nomados_current_trip', JSON.stringify(currentTrip));
+            if (newChecklistTitle) newChecklistTitle.value = '';
+            showToast(`Added "${title}" to essential checklist!`, 'success');
+        });
+    }
+
 
     // 9. Reminders Subtab (Section 18)
     function renderSubtabReminders(trip) {

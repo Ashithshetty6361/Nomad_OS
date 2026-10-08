@@ -37,16 +37,20 @@
 
             <!-- Global Navigation Tabs -->
             <nav class="app-nav" id="mainAppNav">
-                <button type="button" class="nav-tab active" data-view="plan">
+                <button type="button" class="nav-tab active" data-view="plan" id="navBtnPlan">
                     <span class="nav-icon">🏠</span>
                     <span>Plan Trip</span>
                 </button>
-                <button type="button" class="nav-tab" data-view="dashboard" id="navTabDashboard">
+                <button type="button" class="nav-tab new-trip-nav-tab" id="navBtnNewTrip" title="Start a fresh journey">
+                    <span class="nav-icon">➕</span>
+                    <span>New Trip</span>
+                </button>
+                <button type="button" class="nav-tab" data-view="dashboard" id="navBtnDashboard">
                     <span class="nav-icon">🗺️</span>
                     <span>Trip Dashboard</span>
                     <span class="active-trip-dot" id="activeTripDot"></span>
                 </button>
-                <button type="button" class="nav-tab" data-view="explore">
+                <button type="button" class="nav-tab" data-view="explore" id="navBtnExplore">
                     <span class="nav-icon">📍</span>
                     <span>Explore</span>
                 </button>
@@ -133,9 +137,13 @@
                                 <span class="btn-icon">🚀</span>
                                 <span>Launch Interactive Guided Tour</span>
                             </button>
+                            <button type="button" class="btn-hero-step" id="heroStepBuilderBtn">
+                                <span class="btn-icon">🎯</span>
+                                <span>Step-by-Step Builder</span>
+                            </button>
                             <button type="button" class="btn-hero-explore" id="heroQuickPlanBtn">
                                 <span class="btn-icon">✨</span>
-                                <span>Synthesize Custom Trip</span>
+                                <span>Natural AI Prompt</span>
                             </button>
                         </div>
                     </div>
@@ -183,63 +191,270 @@
             </div>
 
             <!-- ============================================================ -->
-            <!-- 2. CONVERSATIONAL TRIP INCEPTION CHAT SECTION               -->
+            <!-- 2. CONVERSATIONAL / STEP-BY-STEP TRIP INCEPTION SECTION     -->
             <!-- ============================================================ -->
             <div class="glass-card chat-inception-card" id="chatInceptionSection">
                 <div class="chat-inception-header">
                     <div class="chat-header-title">
                         <div class="chat-avatar-ai">🤖</div>
                         <div>
-                            <h2>Plan a New Journey with AI</h2>
-                            <p class="chat-subtitle">Tell us what you're thinking for your next trip. Purpose, group, dates, or vibes — write freely.</p>
+                            <h2>Plan a New Journey</h2>
+                            <p class="chat-subtitle">Choose between an intuitive step-by-step wizard or free-form natural language AI prompt.</p>
                         </div>
                     </div>
-                    <span class="chat-status-indicator">Online &bull; Context Aware</span>
+                    <!-- Mode Switcher Tabs -->
+                    <div class="inception-mode-pills" id="inceptionModePills">
+                        <button type="button" class="mode-pill-btn active" id="btnModeStepWizard">
+                            <span class="icon">🎯</span>
+                            <span>Step-by-Step Builder</span>
+                            <span class="badge-mini">Minimal Questions</span>
+                        </button>
+                        <button type="button" class="mode-pill-btn" id="btnModeNaturalAI">
+                            <span class="icon">💬</span>
+                            <span>Natural AI Prompt</span>
+                        </button>
+                    </div>
                 </div>
 
-                <form id="heroPlanForm" class="chat-plan-form">
-                    <div class="chat-input-container">
-                        <textarea id="heroQueryInput" rows="3" placeholder="e.g. 'I have an executive business trip to Bangalore for 3 days next Tuesday for investor pitches and partner meetings. Need quiet dining and fast Wi-Fi.' or 'Plan a relaxed beach trip to Goa for 4 friends around ₹25,000'...">I have an executive business trip to Bangalore for 3 days next Tuesday for tech partner meetings and investor pitches. Need reliable 150+ Mbps Wi-Fi, quiet executive dining, and The Leela Palace or Taj hotel.</textarea>
-                        
-                        <div class="chat-input-footer">
-                            <div class="chat-prompt-chips" id="chatPromptChips">
-                                <button type="button" class="prompt-chip" data-prompt="Executive 3-day business trip to Bangalore with client meetings and high-speed Wi-Fi">💼 Bangalore Business Blitz</button>
-                                <button type="button" class="prompt-chip" data-prompt="3-day relaxed beach trip to Goa with 3 friends focusing on coastal seafood and sunset shacks">🏖️ Goa Friends Getaway</button>
-                                <button type="button" class="prompt-chip" data-prompt="5-day gastronomy and high-tech exploration in Tokyo for 2 people">🍣 Tokyo Foodie Tour</button>
-                                <button type="button" class="prompt-chip" data-prompt="3-day scenic coffee estate retreat in Coorg with family">🌿 Coorg Nature Retreat</button>
+                <!-- MODE A: STEP-BY-STEP MINIMAL QUESTIONS BUILDER (Active by default for easiest UX) -->
+                <div id="stepByStepWizardView" class="inception-mode-content active">
+                    <div class="wizard-container">
+                        <!-- Step Tracker Header -->
+                        <div class="wizard-stepper-header">
+                            <div class="stepper-meta">
+                                <span class="step-counter-tag" id="wizardStepCounter">Step 1 of 4</span>
+                                <span class="step-title-badge" id="wizardStepBadge">Destination & Origin</span>
                             </div>
+                            <div class="wizard-progress-track">
+                                <div class="wizard-progress-bar" id="wizardProgressBar" style="width: 25%;"></div>
+                            </div>
+                        </div>
 
-                            <button type="submit" id="heroSubmitBtn" class="btn-chat-execute">
-                                <span class="btn-icon">✨</span>
-                                <span class="btn-text">Extract Intent & Start</span>
-                                <div class="spinner hidden" id="heroSpinner"></div>
+                        <!-- WIZARD STEP 1: DESTINATION & ORIGIN -->
+                        <div class="wizard-step-panel active" id="wizardStep1">
+                            <div class="wizard-q-hero">
+                                <span class="q-icon">📍</span>
+                                <div>
+                                    <h3>Where do you want to travel?</h3>
+                                    <p class="q-subtitle">Choose a popular getaway below or type any city/region worldwide.</p>
+                                </div>
+                            </div>
+                            <div class="wizard-input-fields">
+                                <div class="form-row-2">
+                                    <div class="form-group-wiz">
+                                        <label for="wizDestinationInput">Target Destination *</label>
+                                        <input type="text" id="wizDestinationInput" placeholder="e.g. Tokyo, Goa, Paris, Kyoto, New York..." value="Tokyo">
+                                    </div>
+                                    <div class="form-group-wiz">
+                                        <label for="wizOriginInput">Departing From</label>
+                                        <input type="text" id="wizOriginInput" placeholder="e.g. Bangalore, Mumbai, London..." value="Bangalore">
+                                    </div>
+                                </div>
+                                <div class="quick-destination-chips">
+                                    <span class="chips-label">Quick Picks:</span>
+                                    <button type="button" class="wiz-pick-chip active" data-dest="Tokyo">🍣 Tokyo</button>
+                                    <button type="button" class="wiz-pick-chip" data-dest="Kyoto">🏯 Kyoto</button>
+                                    <button type="button" class="wiz-pick-chip" data-dest="Goa">🏖️ Goa</button>
+                                    <button type="button" class="wiz-pick-chip" data-dest="Bangalore">💼 Bangalore</button>
+                                    <button type="button" class="wiz-pick-chip" data-dest="Paris">🥐 Paris</button>
+                                    <button type="button" class="wiz-pick-chip" data-dest="New York">🗽 New York</button>
+                                    <button type="button" class="wiz-pick-chip" data-dest="Rome">🏛️ Rome</button>
+                                    <button type="button" class="wiz-pick-chip" data-dest="Coorg">🌿 Coorg</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- WIZARD STEP 2: DURATION -->
+                        <div class="wizard-step-panel hidden" id="wizardStep2">
+                            <div class="wizard-q-hero">
+                                <span class="q-icon">🗓️</span>
+                                <div>
+                                    <h3>How long is this journey?</h3>
+                                    <p class="q-subtitle">Select the trip duration for your realistic daily schedule.</p>
+                                </div>
+                            </div>
+                            <div class="wizard-options-grid-horizontal" id="wizDurationGrid">
+                                <button type="button" class="wiz-pill-card" data-days="2">
+                                    <span class="pill-number">2</span>
+                                    <span class="pill-label">Weekend Break</span>
+                                </button>
+                                <button type="button" class="wiz-pill-card active" data-days="3">
+                                    <span class="pill-number">3</span>
+                                    <span class="pill-label">3-Day Classic</span>
+                                </button>
+                                <button type="button" class="wiz-pill-card" data-days="4">
+                                    <span class="pill-number">4</span>
+                                    <span class="pill-label">4-Day Explorer</span>
+                                </button>
+                                <button type="button" class="wiz-pill-card" data-days="5">
+                                    <span class="pill-number">5</span>
+                                    <span class="pill-label">5-Day Immersion</span>
+                                </button>
+                                <button type="button" class="wiz-pill-card" data-days="7">
+                                    <span class="pill-number">7</span>
+                                    <span class="pill-label">Full Week Tour</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- WIZARD STEP 3: TRAVELERS & VIBE -->
+                        <div class="wizard-step-panel hidden" id="wizardStep3">
+                            <div class="wizard-q-hero">
+                                <span class="q-icon">👥</span>
+                                <div>
+                                    <h3>Who is traveling & what is your travel vibe?</h3>
+                                    <p class="q-subtitle">We tailor hotel categories, pacing, and activities to your party.</p>
+                                </div>
+                            </div>
+                            <div class="wizard-dual-section">
+                                <div class="wiz-subgroup">
+                                    <label class="wiz-subgroup-label">Travel Party:</label>
+                                    <div class="chip-select-row" id="wizCompanionSelect">
+                                        <button type="button" class="wiz-sel-chip" data-val="Solo">👤 Solo</button>
+                                        <button type="button" class="wiz-sel-chip active" data-val="Couple">💑 Couple</button>
+                                        <button type="button" class="wiz-sel-chip" data-val="Friends">👯 Friends</button>
+                                        <button type="button" class="wiz-sel-chip" data-val="Family with Kids">👨‍👩‍👧 Family</button>
+                                        <button type="button" class="wiz-sel-chip" data-val="Corporate Business">💼 Business</button>
+                                    </div>
+                                </div>
+                                <div class="wiz-subgroup">
+                                    <label class="wiz-subgroup-label">Core Style & Vibe:</label>
+                                    <div class="chip-select-row" id="wizStyleSelect">
+                                        <button type="button" class="wiz-sel-chip active" data-val="Food & Culture">🍣 Food & Culture</button>
+                                        <button type="button" class="wiz-sel-chip" data-val="Relaxed Coastal">🏖️ Relaxed & Scenic</button>
+                                        <button type="button" class="wiz-sel-chip" data-val="Executive Work">💼 Executive Work</button>
+                                        <button type="button" class="wiz-sel-chip" data-val="Nature & Trails">🏕️ Nature & Adventure</button>
+                                        <button type="button" class="wiz-sel-chip" data-val="Luxury & Wellness">✨ Luxury & Wellness</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- WIZARD STEP 4: BUDGET & REVIEW -->
+                        <div class="wizard-step-panel hidden" id="wizardStep4">
+                            <div class="wizard-q-hero">
+                                <span class="q-icon">💰</span>
+                                <div>
+                                    <h3>What is your estimated target budget?</h3>
+                                    <p class="q-subtitle">We allocate transit, hotels, meals, Uber rides, and buffer within this ceiling.</p>
+                                </div>
+                            </div>
+                            <div class="wizard-budget-section">
+                                <div class="budget-presets-grid" id="wizBudgetPresets">
+                                    <div class="budget-preset-card" data-tier="budget">
+                                        <span class="tier-icon">💸</span>
+                                        <span class="tier-name">Smart Budget</span>
+                                        <strong class="tier-amount" id="wizTierBudgetAmount">₹15,000</strong>
+                                        <span class="tier-desc">Affordable stays & local transit</span>
+                                    </div>
+                                    <div class="budget-preset-card active" data-tier="comfort">
+                                        <span class="tier-icon">🛋️</span>
+                                        <span class="tier-name">Comfort & Balance</span>
+                                        <strong class="tier-amount" id="wizTierComfortAmount">₹35,000</strong>
+                                        <span class="tier-desc">4★ Hotels & curated dining</span>
+                                    </div>
+                                    <div class="budget-preset-card" data-tier="premium">
+                                        <span class="tier-icon">💎</span>
+                                        <span class="tier-name">Premium Escape</span>
+                                        <strong class="tier-amount" id="wizTierPremiumAmount">₹65,000</strong>
+                                        <span class="tier-desc">5★ Resorts & Uber Premier</span>
+                                    </div>
+                                </div>
+                                <div class="custom-budget-input-box">
+                                    <label>Or specify custom target budget:</label>
+                                    <div class="budget-input-wrap">
+                                        <span class="currency-symbol" id="wizCurrencySymbol">₹</span>
+                                        <input type="number" id="wizCustomBudgetInput" value="35000" min="2000" step="1000">
+                                    </div>
+                                </div>
+
+                                <!-- Live Summary Preview Card -->
+                                <div class="wizard-summary-preview glass-card">
+                                    <div class="summary-preview-title">
+                                        <span>⚡ Journey Summary</span>
+                                        <span class="summary-badge" id="wizSummaryBadge">Ready to Synthesize</span>
+                                    </div>
+                                    <div class="summary-preview-pills" id="wizSummaryPills">
+                                        <span class="spill">📍 Tokyo</span>
+                                        <span class="spill">🗓️ 3 Days</span>
+                                        <span class="spill">👥 Couple</span>
+                                        <span class="spill">🍣 Food & Culture</span>
+                                        <span class="spill">💰 ₹35,000</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Wizard Controls Bar -->
+                        <div class="wizard-nav-controls">
+                            <button type="button" class="btn-wiz-nav" id="btnWizBack" disabled>
+                                <span>← Back</span>
+                            </button>
+                            <div class="wiz-dots-indicator" id="wizDotsIndicator">
+                                <span class="wdot active" data-step="1"></span>
+                                <span class="wdot" data-step="2"></span>
+                                <span class="wdot" data-step="3"></span>
+                                <span class="wdot" data-step="4"></span>
+                            </div>
+                            <button type="button" class="btn-wiz-nav next" id="btnWizNext">
+                                <span>Next Step →</span>
+                            </button>
+                            <button type="button" class="btn-wiz-nav finish hidden" id="btnWizFinish">
+                                <span class="btn-icon">⚡</span>
+                                <span>Synthesize 9-Module Trip 🚀</span>
+                                <div class="spinner hidden" id="wizSpinner"></div>
                             </button>
                         </div>
                     </div>
-                </form>
+                </div>
 
-                <!-- Starter Intent Quick Pills -->
-                <div class="starter-pills-section">
-                    <span class="starter-label">Quick Trip Vibe:</span>
-                    <div class="starter-pills-grid" id="starterPillsGrid">
-                        <button type="button" class="starter-pill" data-pill="know_destination">
-                            <span>📍 Known Destination</span>
-                        </button>
-                        <button type="button" class="starter-pill active" data-pill="help_choose">
-                            <span>✨ Help Me Choose</span>
-                        </button>
-                        <button type="button" class="starter-pill" data-pill="concert">
-                            <span>🎵 Event or Concert</span>
-                        </button>
-                        <button type="button" class="starter-pill" data-pill="family">
-                            <span>👨‍👩‍👧 Family Trip</span>
-                        </button>
-                        <button type="button" class="starter-pill" data-pill="adventure">
-                            <span>🏕️ Outdoor Adventure</span>
-                        </button>
+                <!-- MODE B: NATURAL LANGUAGE PROMPT -->
+                <div id="naturalPromptModeView" class="inception-mode-content hidden">
+                    <form id="heroPlanForm" class="chat-plan-form">
+                        <div class="chat-input-container">
+                            <textarea id="heroQueryInput" rows="3" placeholder="e.g. 'I have an executive business trip to Bangalore for 3 days next Tuesday for investor pitches and partner meetings. Need quiet dining and fast Wi-Fi.' or 'Plan a relaxed beach trip to Goa for 4 friends around ₹25,000'...">I have an executive business trip to Bangalore for 3 days next Tuesday for tech partner meetings and investor pitches. Need reliable 150+ Mbps Wi-Fi, quiet executive dining, and The Leela Palace or Taj hotel.</textarea>
+                            
+                            <div class="chat-input-footer">
+                                <div class="chat-prompt-chips" id="chatPromptChips">
+                                    <button type="button" class="prompt-chip" data-prompt="Executive 3-day business trip to Bangalore with client meetings and high-speed Wi-Fi">💼 Bangalore Business Blitz</button>
+                                    <button type="button" class="prompt-chip" data-prompt="3-day relaxed beach trip to Goa with 3 friends focusing on coastal seafood and sunset shacks">🏖️ Goa Friends Getaway</button>
+                                    <button type="button" class="prompt-chip" data-prompt="5-day gastronomy and high-tech exploration in Tokyo for 2 people">🍣 Tokyo Foodie Tour</button>
+                                    <button type="button" class="prompt-chip" data-prompt="3-day scenic coffee estate retreat in Coorg with family">🌿 Coorg Nature Retreat</button>
+                                </div>
+
+                                <button type="submit" id="heroSubmitBtn" class="btn-chat-execute">
+                                    <span class="btn-icon">✨</span>
+                                    <span class="btn-text">Extract Intent & Start</span>
+                                    <div class="spinner hidden" id="heroSpinner"></div>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Starter Intent Quick Pills -->
+                    <div class="starter-pills-section">
+                        <span class="starter-label">Quick Trip Vibe:</span>
+                        <div class="starter-pills-grid" id="starterPillsGrid">
+                            <button type="button" class="starter-pill" data-pill="know_destination">
+                                <span>📍 Known Destination</span>
+                            </button>
+                            <button type="button" class="starter-pill active" data-pill="help_choose">
+                                <span>✨ Help Me Choose</span>
+                            </button>
+                            <button type="button" class="starter-pill" data-pill="concert">
+                                <span>🎵 Event or Concert</span>
+                            </button>
+                            <button type="button" class="starter-pill" data-pill="family">
+                                <span>👨‍👩‍👧 Family Trip</span>
+                            </button>
+                            <button type="button" class="starter-pill" data-pill="adventure">
+                                <span>🏕️ Outdoor Adventure</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
+
 
             <!-- Destination Recommendations Gallery (Shown when destination is missing or exploring) -->
             <div id="destRecommendationsContainer" class="destination-recommendations-wrapper hidden">
@@ -414,8 +629,16 @@
                         </div>
                     </div>
                     <div class="hero-actions">
-                        <button type="button" class="btn-dash-action" id="dashCopyMarkdownBtn">📋 Copy Markdown</button>
-                        <button type="button" class="btn-dash-action" id="dashExportJsonBtn">💾 Export JSON</button>
+                        <button type="button" class="btn-dash-action highlight-save" id="dashSaveTripBtn" title="Save trip progress to cloud & local storage">
+                            <span class="btn-icon">💾</span>
+                            <span class="btn-text">Save Progress</span>
+                        </button>
+                        <button type="button" class="btn-dash-action" id="dashNewTripBtn" title="Plan a brand new journey">
+                            <span class="btn-icon">➕</span>
+                            <span>New Trip</span>
+                        </button>
+                        <button type="button" class="btn-dash-action" id="dashCopyMarkdownBtn">📋 Markdown</button>
+                        <button type="button" class="btn-dash-action" id="dashExportJsonBtn">Export JSON</button>
                         <button type="button" class="btn-dash-action highlight" id="dashAskAiBtn">🤖 Ask AI</button>
                     </div>
                 </div>
@@ -661,6 +884,41 @@
                             <span id="dashPackingCountText">0 / 0 Items Packed</span>
                             <span id="dashPackingPercentText" class="text-emerald">0% Ready to Depart</span>
                         </div>
+                    </div>
+
+                    <!-- Add Custom Essential Item to Checklist Form -->
+                    <div class="glass-card add-essential-card">
+                        <div class="add-essential-header">
+                            <span class="add-icon">➕</span>
+                            <div>
+                                <h4>Add Custom Essential Item to Checklist</h4>
+                                <p class="add-desc">Add custom gear, medicine, documents, or pre-departure requirements to your personalized list.</p>
+                            </div>
+                        </div>
+                        <form id="addChecklistForm" class="add-checklist-form">
+                            <div class="add-inputs-row">
+                                <div class="add-input-group flex-2">
+                                    <label for="newChecklistTitle">Item Name or Essential Requirement</label>
+                                    <input type="text" id="newChecklistTitle" placeholder="e.g. Universal travel adapter, Asthma inhaler, Backup card, Download offline maps..." required>
+                                </div>
+                                <div class="add-input-group flex-1">
+                                    <label for="newChecklistCategory">Category</label>
+                                    <select id="newChecklistCategory">
+                                        <option value="🛂 Essentials & Documents">🛂 Essentials & Documents</option>
+                                        <option value="👕 Clothing & Weather">👕 Clothing & Weather</option>
+                                        <option value="🔌 Tech & Power">🔌 Tech & Power</option>
+                                        <option value="💊 Health & Comfort">💊 Health & Comfort</option>
+                                        <option value="✈️ Pre-Trip Preparation">✈️ Pre-Trip Departure</option>
+                                    </select>
+                                </div>
+                                <div class="add-input-group flex-auto">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn-add-item-submit" id="btnAddChecklistItem">
+                                        <span>+ Add Item</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
 
                     <!-- Pre-Trip Departure Section (Section 17) -->

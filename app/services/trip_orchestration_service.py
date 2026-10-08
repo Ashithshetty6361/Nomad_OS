@@ -1558,7 +1558,33 @@ class TripOrchestrationService:
         self._trips[new_trip_id] = cloned_trip
         return cloned_trip
 
+    def get_trip(self, trip_id: str) -> Optional[CanonicalTrip]:
+        """Retrieves a trip by ID from in-memory cache or SQLite persistence."""
+        if trip_id in self._trips:
+            return self._trips[trip_id]
+        saved_dict = persistence.get_trip(trip_id)
+        if saved_dict:
+            try:
+                trip = CanonicalTrip.parse_obj(saved_dict)
+                self._trips[trip_id] = trip
+                return trip
+            except Exception as e:
+                logger.warning(f"Failed to parse stored trip {trip_id}: {e}")
+        return None
+
+    def save_trip(self, trip_id: str, trip_data: Dict[str, Any]) -> CanonicalTrip:
+        """Persists updated trip state to cache and SQLite storage."""
+        trip = CanonicalTrip.parse_obj(trip_data)
+        self._trips[trip_id] = trip
+        try:
+            persistence.save_trip(trip_id=trip_id, trip_data=trip.dict())
+            logger.info(f"Persisted trip {trip_id} ('{trip.title}') to SQLite.")
+        except Exception as e:
+            logger.warning(f"Could not persist trip {trip_id} to SQLite: {e}")
+        return trip
+
 
 # Singleton instance
 trip_orchestration_service = TripOrchestrationService()
+
 
